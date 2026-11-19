@@ -5,9 +5,10 @@ import { usePathname } from "next/navigation";
 import { Lock } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/", label: "E-Invoice XML Viewer" },
-  { href: "/battery-qr-2027", label: "Battery QR 2027" },
-  { href: "/privacy", label: "Privacy & GDPR" },
+  { href: "/", label: "E-Invoice Viewer (EN)" },
+  { href: "/de", label: "E-Rechnung (DE)" },
+  { href: "/battery-qr-2027", label: "Battery QR" },
+  { href: "/privacy", label: "Privacy" },
 ];
 
 export default function Navbar() {
@@ -25,7 +26,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium">
           {NAV_ITEMS.map((item) => {
             const active = pathname === item.href;
             return (
@@ -42,7 +43,7 @@ export default function Navbar() {
               </Link>
             );
           })}
-          <span className="hidden md:inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-xs ml-2">
+          <span className="hidden lg:inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-xs ml-2">
             <Lock className="w-3.5 h-3.5" />
             100% Client-Side
           </span>
