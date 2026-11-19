@@ -9,13 +9,13 @@ import {
   FileText,
   Sparkles,
   RotateCcw,
-  Lock,
 } from "lucide-react";
 import { ParsedInvoice } from "@/lib/types";
 import { generateInvoiceCsv, parseEuInvoiceXml } from "@/lib/xmlParser";
 import { SAMPLE_XRECHNUNG_XML } from "@/lib/sampleXml";
 import InvoicePreview from "@/components/InvoicePreview";
 import ValidationPanel from "@/components/ValidationPanel";
+import Navbar from "@/components/Navbar";
 
 export default function HomePage() {
   const [invoice, setInvoice] = useState<ParsedInvoice | null>(null);
@@ -70,28 +70,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Top Navbar */}
-      <nav className="no-print bg-white border-b border-slate-200 sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
-              EU
-            </div>
-            <div>
-              <span className="font-bold text-slate-900 tracking-tight">
-                EU2027<span className="text-blue-600">.aabready</span>
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4 text-xs sm:text-sm font-medium">
-            <span className="hidden sm:inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
-              <Lock className="w-3.5 h-3.5" />
-              100% Client-Side • Zero Upload
-            </span>
-          </div>
-        </div>
-      </nav>
+      {/* Shared Navigation Bar */}
+      <Navbar />
 
       {/* Main Content */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-8 space-y-8">
@@ -102,7 +82,7 @@ export default function HomePage() {
             Ready for the Jan 1, 2027 EU E-Invoicing Mandate
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight">
-            Private EU E-Invoice XML Viewer, Validator & PDF Converter
+            Private EU E-Invoice XML Viewer, Validator &amp; PDF Converter
           </h1>
           <p className="text-slate-600 text-base">
             Instantly inspect <strong>XRechnung</strong>, <strong>Peppol BIS 3.0 (UBL)</strong>, and{" "}
@@ -145,7 +125,7 @@ export default function HomePage() {
                 Drop your E-Invoice XML file here, or click to browse
               </p>
               <p className="text-sm text-slate-500 mt-1">
-                Supports UBL 2.1, Peppol BIS 3.0, XRechnung 3.0 & UN/CEFACT CII (.xml)
+                Supports UBL 2.1, Peppol BIS 3.0, XRechnung 3.0 &amp; UN/CEFACT CII (.xml)
               </p>
             </div>
 
@@ -155,7 +135,7 @@ export default function HomePage() {
                 onClick={() =>
                   processXmlString(SAMPLE_XRECHNUNG_XML, "sample-xrechnung-3.0.xml")
                 }
-                className="inline-flex items-center gap-2 text-sm font-medium text-blue-700 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl transition"
+                className="inline-flex items-center gap-2 text-sm font-medium text-blue-700 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl transition cursor-pointer"
               >
                 <Sparkles className="w-4 h-4" />
                 Try with a Sample XRechnung 3.0 XML Invoice
@@ -225,11 +205,11 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* Monetization / B2B Pro Banner (Replace href with your Lemon Squeezy or Affiliate link) */}
+        {/* Monetization / B2B Pro Banner */}
         <section className="no-print bg-slate-900 text-white rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-xl">
             <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
-              For Accountants & EU Businesses
+              For Accountants &amp; EU Businesses
             </span>
             <h2 className="text-xl font-bold">
               Need Bulk XML-to-PDF Conversion or ERP Automation?
@@ -237,7 +217,7 @@ export default function HomePage() {
             <p className="text-slate-300 text-sm">
               Single invoice inspection and PDF conversion here is always free. Preparing for the
               2027 Germany, Poland, or France B2B e-invoicing rollout? Get notified when our Bulk
-              Batch Converter & DATEV CSV Pack launches.
+              Batch Converter &amp; DATEV CSV Pack launches.
             </p>
           </div>
           <a
@@ -248,7 +228,7 @@ export default function HomePage() {
           </a>
         </section>
 
-        {/* SEO Content & 2027 Mandate FAQ */}
+        {/* SEO Content Cards */}
         <section className="no-print grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
           <div className="bg-white border border-slate-200 rounded-2xl p-5">
             <h3 className="font-bold text-slate-900 mb-2">
@@ -279,6 +259,90 @@ export default function HomePage() {
               <strong>Peppol BIS Billing 3.0 (UBL 2.1)</strong>, and{" "}
               <strong>ZUGFeRD / Factur-X (UN/CEFACT CII)</strong> XML files.
             </p>
+          </div>
+        </section>
+
+        {/* 2027 EU Country E-Invoicing Reference Table */}
+        <section className="no-print bg-white border border-slate-200 rounded-2xl p-6 space-y-4">
+          <h2 className="text-xl font-bold text-slate-900">
+            2027 European B2B E-Invoicing Mandate Timeline
+          </h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 text-xs uppercase text-slate-500">
+                  <th className="py-2.5 pr-4">Country</th>
+                  <th className="py-2.5 pr-4">Key 2027 Milestone</th>
+                  <th className="py-2.5 pr-4">Standard / Format</th>
+                  <th className="py-2.5">Scope</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                <tr>
+                  <td className="py-3 pr-4 font-semibold text-slate-900">Germany</td>
+                  <td className="py-3 pr-4">January 1, 2027</td>
+                  <td className="py-3 pr-4 font-mono text-xs">XRechnung / ZUGFeRD (EN 16931)</td>
+                  <td className="py-3">Mandatory B2B issuance for companies &gt; €800k turnover</td>
+                </tr>
+                <tr>
+                  <td className="py-3 pr-4 font-semibold text-slate-900">Poland</td>
+                  <td className="py-3 pr-4">2026–2027 KSeF Rollout</td>
+                  <td className="py-3 pr-4 font-mono text-xs">FA(3) Structured XML</td>
+                  <td className="py-3">National e-invoicing system expansion including micro-SMEs</td>
+                </tr>
+                <tr>
+                  <td className="py-3 pr-4 font-semibold text-slate-900">France</td>
+                  <td className="py-3 pr-4">September 1, 2027</td>
+                  <td className="py-3 pr-4 font-mono text-xs">Factur-X (CII) / UBL</td>
+                  <td className="py-3">Mandatory B2B e-invoice issuance for SMEs &amp; micro-enterprises</td>
+                </tr>
+                <tr>
+                  <td className="py-3 pr-4 font-semibold text-slate-900">Belgium &amp; EU Peppol</td>
+                  <td className="py-3 pr-4">Active / Ongoing 2027</td>
+                  <td className="py-3 pr-4 font-mono text-xs">Peppol BIS Billing 3.0 (UBL 2.1)</td>
+                  <td className="py-3">Structured B2B exchange over the Peppol network</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* Visible FAQ Matching JSON-LD Schema */}
+        <section className="no-print bg-white border border-slate-200 rounded-2xl p-6 space-y-4">
+          <h2 className="text-xl font-bold text-slate-900">
+            Frequently Asked Questions
+          </h2>
+          <div className="space-y-4 text-sm">
+            <div>
+              <h3 className="font-semibold text-slate-900">
+                Are my XML invoices uploaded to a server?
+              </h3>
+              <p className="text-slate-600 mt-1">
+                No. All XML parsing, EN 16931 validation, CSV generation, and PDF rendering execute
+                strictly inside your local browser memory using the native DOMParser API. Your
+                financial data never leaves your device.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-slate-900">
+                Which 2027 EU e-invoicing formats are supported?
+              </h3>
+              <p className="text-slate-600 mt-1">
+                The tool supports XRechnung 3.0 (UBL and CII), Peppol BIS Billing 3.0 (UBL 2.1), and
+                ZUGFeRD / Factur-X (UN/CEFACT CrossIndustryInvoice XML).
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-slate-900">
+                When do the mandatory EU 2027 e-invoicing rules take effect?
+              </h3>
+              <p className="text-slate-600 mt-1">
+                From January 1, 2027, Germany removes the paper and PDF e-invoicing transition
+                exemption for businesses with annual turnover above €800,000, while countries such
+                as Poland (KSeF) and France (September 2027 SME phase) roll out mandatory structured
+                B2B e-invoicing.
+              </p>
+            </div>
           </div>
         </section>
       </main>
