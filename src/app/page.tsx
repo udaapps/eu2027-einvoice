@@ -1,69 +1,295 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useRef } from "react";
+import {
+  Upload,
+  ShieldCheck,
+  Printer,
+  Download,
+  FileText,
+  Sparkles,
+  RotateCcw,
+  Lock,
+} from "lucide-react";
+import { ParsedInvoice } from "@/lib/types";
+import { generateInvoiceCsv, parseEuInvoiceXml } from "@/lib/xmlParser";
+import { SAMPLE_XRECHNUNG_XML } from "@/lib/sampleXml";
+import InvoicePreview from "@/components/InvoicePreview";
+import ValidationPanel from "@/components/ValidationPanel";
+
+export default function HomePage() {
+  const [invoice, setInvoice] = useState<ParsedInvoice | null>(null);
+  const [fileName, setFileName] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const processXmlString = (content: string, name: string) => {
+    try {
+      setError("");
+      const parsed = parseEuInvoiceXml(content);
+      setInvoice(parsed);
+      setFileName(name);
+    } catch (err) {
+      setInvoice(null);
+      setError(err instanceof Error ? err.message : "Failed to parse XML file.");
+    }
+  };
+
+  const handleFile = (file: File) => {
+    if (!file.name.toLowerCase().endsWith(".xml")) {
+      setError("Please select a valid .xml e-invoice file.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = String(e.target?.result || "");
+      processXmlString(content, file.name);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFile(file);
+  };
+
+  const handleDownloadCsv = () => {
+    if (!invoice) return;
+    const csv = generateInvoiceCsv(invoice);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${invoice.invoiceNumber || "eu-invoice"}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <div className="min-h-screen flex flex-col">
+      {/* Top Navbar */}
+      <nav className="no-print bg-white border-b border-slate-200 sticky top-0 z-20">
+        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
+              EU
+            </div>
+            <div>
+              <span className="font-bold text-slate-900 tracking-tight">
+                EU2027<span className="text-blue-600">.aabready</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 text-xs sm:text-sm font-medium">
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+              <Lock className="w-3.5 h-3.5" />
+              100% Client-Side • Zero Upload
+            </span>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-8 space-y-8">
+        {/* Hero */}
+        <header className="no-print text-center max-w-3xl mx-auto space-y-3">
+          <div className="inline-flex items-center gap-2 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
+            <ShieldCheck className="w-4 h-4" />
+            Ready for the Jan 1, 2027 EU E-Invoicing Mandate
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight">
+            Private EU E-Invoice XML Viewer, Validator & PDF Converter
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-slate-600 text-base">
+            Instantly inspect <strong>XRechnung</strong>, <strong>Peppol BIS 3.0 (UBL)</strong>, and{" "}
+            <strong>ZUGFeRD / Factur-X (CII)</strong> XML files. Runs completely offline in your
+            browser—your financial data never leaves your device.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+        </header>
+
+        {/* Upload Dropzone */}
+        {!invoice && (
+          <section className="no-print max-w-2xl mx-auto">
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`cursor-pointer border-2 border-dashed rounded-2xl p-10 text-center transition-all ${
+                isDragging
+                  ? "border-blue-600 bg-blue-50/70"
+                  : "border-slate-300 bg-white hover:border-blue-400 hover:bg-slate-50"
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xml,text/xml,application/xml"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleFile(f);
+                }}
+              />
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+                <Upload className="w-7 h-7" />
+              </div>
+              <p className="text-lg font-semibold text-slate-900">
+                Drop your E-Invoice XML file here, or click to browse
+              </p>
+              <p className="text-sm text-slate-500 mt-1">
+                Supports UBL 2.1, Peppol BIS 3.0, XRechnung 3.0 & UN/CEFACT CII (.xml)
+              </p>
+            </div>
+
+            <div className="flex justify-center mt-4">
+              <button
+                type="button"
+                onClick={() =>
+                  processXmlString(SAMPLE_XRECHNUNG_XML, "sample-xrechnung-3.0.xml")
+                }
+                className="inline-flex items-center gap-2 text-sm font-medium text-blue-700 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl transition"
+              >
+                <Sparkles className="w-4 h-4" />
+                Try with a Sample XRechnung 3.0 XML Invoice
+              </button>
+            </div>
+
+            {error && (
+              <div className="mt-4 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium text-center">
+                {error}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Active Invoice Workspace */}
+        {invoice && (
+          <section className="space-y-6">
+            {/* Action Toolbar */}
+            <div className="no-print flex flex-wrap items-center justify-between gap-3 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <FileText className="w-4 h-4 text-blue-600" />
+                <span className="font-mono font-medium text-slate-900 truncate max-w-[220px]">
+                  {fileName}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  Save as PDF / Print
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadCsv}
+                  className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold px-4 py-2 rounded-xl transition cursor-pointer"
+                >
+                  <Download className="w-4 h-4" />
+                  Export CSV
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInvoice(null);
+                    setFileName("");
+                    setError("");
+                  }}
+                  className="inline-flex items-center gap-1.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-sm font-medium px-3.5 py-2 rounded-xl transition cursor-pointer"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  New File
+                </button>
+              </div>
+            </div>
+
+            {/* EN 16931 Validation */}
+            <ValidationPanel
+              issues={invoice.validation}
+              format={invoice.format}
             />
-            Deploy Now
-          </a>
+
+            {/* Printable Invoice */}
+            <InvoicePreview invoice={invoice} />
+          </section>
+        )}
+
+        {/* Monetization / B2B Pro Banner (Replace href with your Lemon Squeezy or Affiliate link) */}
+        <section className="no-print bg-slate-900 text-white rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-xl">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+              For Accountants & EU Businesses
+            </span>
+            <h2 className="text-xl font-bold">
+              Need Bulk XML-to-PDF Conversion or ERP Automation?
+            </h2>
+            <p className="text-slate-300 text-sm">
+              Single invoice inspection and PDF conversion here is always free. Preparing for the
+              2027 Germany, Poland, or France B2B e-invoicing rollout? Get notified when our Bulk
+              Batch Converter & DATEV CSV Pack launches.
+            </p>
+          </div>
           <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="mailto:support@aabready.com?subject=EU%202027%20Bulk%20E-Invoice%20Pro"
+            className="shrink-0 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm px-5 py-3 rounded-xl transition"
           >
-            Documentation
+            Request Bulk Pro Access →
           </a>
-        </div>
+        </section>
+
+        {/* SEO Content & 2027 Mandate FAQ */}
+        <section className="no-print grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5">
+            <h3 className="font-bold text-slate-900 mb-2">
+              Why 100% Client-Side Privacy Matters
+            </h3>
+            <p className="text-sm text-slate-600">
+              E-invoices contain sensitive IBAN numbers, VAT IDs, and B2B pricing. Unlike cloud
+              converters, this tool parses XML strictly inside your local browser memory—making it
+              GDPR-friendly by design.
+            </p>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-2xl p-5">
+            <h3 className="font-bold text-slate-900 mb-2">
+              2027 EU Mandate Deadlines
+            </h3>
+            <p className="text-sm text-slate-600">
+              From <strong>January 1, 2027</strong>, Germany removes the paper/PDF transition
+              exemption for businesses above €800,000 turnover, while Poland (KSeF) and other EU
+              states enforce structured EN 16931 e-invoicing.
+            </p>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-2xl p-5">
+            <h3 className="font-bold text-slate-900 mb-2">
+              Supported European Formats
+            </h3>
+            <p className="text-sm text-slate-600">
+              Automatically detects and visualizes <strong>XRechnung 3.0</strong>,{" "}
+              <strong>Peppol BIS Billing 3.0 (UBL 2.1)</strong>, and{" "}
+              <strong>ZUGFeRD / Factur-X (UN/CEFACT CII)</strong> XML files.
+            </p>
+          </div>
+        </section>
       </main>
+
+      {/* Footer */}
+      <footer className="no-print border-t border-slate-200 bg-white py-6 mt-12">
+        <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-500">
+          <span>© 2026–2027 eu2027.aabready.com — Private EU Compliance Tools</span>
+          <span>Zero cookies • Zero server storage • Built for EN 16931</span>
+        </div>
+      </footer>
     </div>
   );
 }
